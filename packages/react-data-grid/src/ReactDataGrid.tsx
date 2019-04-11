@@ -1,25 +1,32 @@
 import React from 'react';
-import { isElement, isValidElementType } from 'react-is';
 
+// Components
 import Grid from './Grid';
+import ToolbarContainer, { ToolbarContainerProps } from './ToolbarContainer';
 import CheckboxEditor from './common/editors/CheckboxEditor';
+import { SelectAll, SelectAllProps } from './formatters';
+
+// Utils
 import * as RowUtils from './RowUtils';
 import { getColumn, getSize } from './ColumnUtils';
 import KeyCodes from './KeyCodes';
 import { isFunction } from './common/utils';
-import { SelectAll, SelectAllProps } from './formatters';
-import { DEFINE_SORT } from './common/cells/headerCells/SortableHeaderCell';
 import * as ColumnMetrics from './ColumnMetrics';
+import EventBus from './masks/EventBus';
+
+// Types
+import { DEFINE_SORT } from './common/cells/headerCells/SortableHeaderCell';
 import { CellNavigationMode, EventTypes, UpdateActions, HeaderRowType } from './common/enums';
 import { Column } from './common/types';
-import EventBus from './masks/EventBus';
 
 interface CellPosition {
   rowIdx: number;
   idx: number;
 }
 
-interface Props {
+type SubComponentsProps = Pick<ToolbarContainerProps, 'toolbar'>;
+
+interface Props extends SubComponentsProps {
   /** The height of each row in pixels */
   rowHeight?: number;
   /** The height of the header row in pixels */
@@ -34,8 +41,6 @@ interface Props {
   rowGetter(rowIdx: number): void;
   /** The number of rows to be rendered */
   rowsCount: number;
-  /** Component used to render toolbar above the grid */
-  toolbar: React.ReactChild;
   /** Used to toggle whether cells can be selected or not */
   enableCellSelect?: boolean;
   /**
@@ -680,18 +685,6 @@ export default class ReactDataGrid extends React.Component<Props, State> {
     return this._cachedComputedColumns;
   }
 
-  renderToolbar() {
-    const { toolbar } = this.props;
-    const toolBarProps = { columns: this.props.columns, onToggleFilter: this.onToggleFilter, numberOfRows: this.props.rowsCount };
-    if (isElement(toolbar)) {
-      return React.cloneElement(toolbar, toolBarProps);
-    }
-    if (isValidElementType(toolbar)) {
-      return React.createElement(toolbar, toolBarProps);
-    }
-    return null;
-  }
-
   render() {
     const cellMetaData = {
       rowKey: this.props.rowKey,
@@ -711,7 +704,6 @@ export default class ReactDataGrid extends React.Component<Props, State> {
       cellMetaData.onCellMouseEnter = this.onCellMouseEnter;
     }
 
-    const toolbar = this.renderToolbar();
     let containerWidth = this.props.minWidth || this.gridWidth();
     let gridWidth = containerWidth - this.state.scrollOffset;
 
@@ -734,7 +726,12 @@ export default class ReactDataGrid extends React.Component<Props, State> {
         style={{ width: containerWidth }}
         ref={this.grid}
       >
-        {toolbar}
+        <ToolbarContainer
+          toolbar={this.props.toolbar}
+          columns={this.props.columns}
+          rowsCount={this.props.rowsCount}
+          onToggleFilter={this.onToggleFilter}
+        />
         <div className="react-grid-Main">
           <Grid
             {...this.props}
