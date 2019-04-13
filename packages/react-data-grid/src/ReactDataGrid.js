@@ -407,8 +407,8 @@ class ReactDataGrid extends React.Component {
 
   onCellClick = ({ rowIdx, idx }) => {
     const { onRowClick, rowGetter } = this.props;
-    this.selectCell({ rowIdx, idx });
-
+    this.openCellEditor(rowIdx, idx);
+    
     if (isFunction(onRowClick)) {
       onRowClick(rowIdx, rowGetter(rowIdx), this.getColumn(idx));
     }
